@@ -1,5 +1,6 @@
 import psutil as psu
 import cpuinfo as cpui
+import GPUtil as gpui
 import os, time
 
 ###FUNCOES###
@@ -9,8 +10,10 @@ def menu():
     os.system("cls")
 
     print("""
-    1 - VER INFORMACOES DO CPU
-    2 - SAIR
+    1 - CPU
+    2 - DISCO
+    3 - GPU
+    0 - SAIR
     """)
 
     op = input("OPCAO >> ")
@@ -40,7 +43,7 @@ def cpu():
             print(f"[PERCENTAGEM / CORE]:")
             for i, p in enumerate (percentagens):
                 print(f"CPU {i:<2} --> {p}%")
-            print("\n***********************")
+            print("***********************")
             print(f"\nUTILIZACAO TOTAL > {total:.1f}%")
 
         
@@ -48,24 +51,68 @@ def cpu():
 
 
     except KeyboardInterrupt:
-        print("\nA voltar...")
-        time.sleep(0.5)        
-        menu()
+        print("\n[INFO] A voltar...")
+        time.sleep(0.5)
+        return
+
+def disco():
+    particoes = psu.disk_partitions()
+    os.system('cls')
+    try:
+        print(f"[PARTICOES]")
+        for particao in particoes:
+            print(particao)
+
+        print(f"\n\n[UTILIZACAO]")
+
+        for particao in particoes:
+            espaco = psu.disk_usage(particao.mountpoint)
+            print(f"{particao.mountpoint} --> {espaco.percent}% ocupado")
+
+        input()
+    except KeyboardInterrupt:
+        print("\n[INFO] A voltar...")
+        time.sleep(0.5)
+        return
 
 
-#######
-#######
-#######
-#######
+def gpu():
+    gpus = gpui.getGPUs()
+
+    os.system('cls')
+
+    try:
+
+        print(f"[GPUS]")
+
+        if not gpus:
+            print("[INFO] Nao existem GPUs no sistema.")
+        else:
+            for i, gpu in enumerate(gpus):
+                print(f"\nGPU {i+1:<2} --> {gpu.name}")
+            
+            input()
+    except KeyboardInterrupt:
+        print("\n[INFO] A voltar...")
+        time.sleep(0.5)
+        return
 
 ###MAIN###
+
 while True:
     op = menu()
 
     if (op == "1"):
+        print("[INFO] A carregar informacoes do CPU...")
         cpu()
     elif(op == "2"):
+        disco()
+    elif(op == "3"):
+        gpu()
+    elif(op == "0"):
+        print("[INFO] A sair...")
+        time.sleep(0.5)
         exit()
     else:
-        print("OPCAO INVALIDA!")
+        print("[INFO] OPCAO INVALIDA!")
         print("PRESSIONA ENTER PARA CONTINUAR....")
