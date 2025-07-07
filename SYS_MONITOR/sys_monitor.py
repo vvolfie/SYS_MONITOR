@@ -2,6 +2,10 @@ import psutil as psu
 import cpuinfo as cpui
 import GPUtil as gpui
 import os, time
+import subprocess as sp
+
+
+GB = 1024 ** 3  # Number of bytes in a gigabyte
 
 ###FUNCOES###
 
@@ -13,7 +17,7 @@ def menu():
     1 - CPU
     2 - DISCO
     3 - GPU
-    0 - SAIR
+    4 - RAM
     """)
 
     op = input("OPCAO >> ")
@@ -60,6 +64,18 @@ def cpu():
 
 #INFOS DISCO
 def disco():
+
+    def listar_modelos_disco():
+        try: 
+            comando = 'powershell "Get-PhysicalDisk | Select-Object -ExpandProperty FriendlyName"'
+            resultado = sp.check_output(comando, shell=True, text=True)
+            print(resultado)
+        except Exception as e: 
+            print(f"Erro ao obter modelo do disco: {e}")
+
+
+    GB = 1024 ** 3  # Number of bytes in a gigabyte
+
     particoes = psu.disk_partitions() # Obtem as particoes do disco
     os.system('cls')
     try:
@@ -67,11 +83,26 @@ def disco():
         for particao in particoes:
             print(particao)
 
-        print(f"\n\n[UTILIZACAO]")
+        print(f"\n\n[MODELOS DE DISCO NO SISTEMA]")
+        print("\n[INFO] A obter os modelos dos discos do sistema...\n")
+        listar_modelos_disco()  # Chama a funcao para listar modelos de disco
+
+        #print(f"\n\n[UTILIZACAO]")
 
         for particao in particoes:
             espaco = psu.disk_usage(particao.mountpoint) # Busca a utilizacao da particao
-            print(f"{particao.mountpoint} --> {espaco.percent}% ocupado") #imprime a utilizacao
+
+            print(f"\n[INFORMACOES DA PARTICAO {particao.mountpoint}]\n")
+
+            print(f"TIPO de FICHEIROS   > {particao.fstype}")
+
+
+            print(f"Espaco total        > {espaco.total / GB:.2f} GB")
+            print(f"Espaco usado        > {espaco.used / GB:.2f} GB ({espaco.percent}% ocupado)")
+            #print(f"{espaco.percent}% ocupado") #imprime a utilizacao
+            print(f"Espaco livre        > {espaco.free / GB:.2f} GB")
+
+
 
         input()
     except KeyboardInterrupt:
@@ -108,10 +139,12 @@ def gpu():
                         gpu = gpus[indice]
                         os.system('cls')
                         print(f"\n[INFORMACOES DA GPU {indice+1} EM TEMPO REAL]\n")
-                        print(f"GPU           > {gpu.name}")
-                        print(f"Memoria Total > {gpu.memoryTotal} MB")
-                        print(f"Memoria Livre > {gpu.memoryFree} MB")
-                        print(f"Temperatiura  > {gpu.temperature} (C)")
+                        print(f"GPU             > {gpu.name}")
+                        print(f"Memoria Total   > {gpu.memoryTotal} MB")
+                        print(f"Memoria Livre   > {gpu.memoryFree} MB")
+                        print(f"Temperatura     > {gpu.temperature} (C)")
+                        print(f"Utilizacao      > {gpu.load * 100:.1f}%")
+                        print(f"Driver Ver.     > {gpu.driver}")
                         print("\nPressiona CTRL+C para voltar ao menu...")
                         time.sleep(1)
 
@@ -126,22 +159,47 @@ def gpu():
         time.sleep(0.5)
         return
 
+def ram():
+    while True:
+        try:
+            memoria = psu.virtual_memory() # recebe info da psutil sobre mem
+            os.system('cls')
+            print("[INFORMACOES DA RAM]\n")
+            print("Informaçao em tempo real...\n")
+
+            print(f"Memorial Total   > {memoria.total / GB:.2f} GB")
+            print(f"Memoria Usada    > {memoria.used / GB:.2f} GB ({memoria.percent}% usado)")
+            print(f"Memoria Livre    > {memoria.free / GB:.2f} GB")
+            time.sleep(1)
+
+        except KeyboardInterrupt:
+            print("\n[INFO] A voltar...")
+            time.sleep(0.5)
+            return
+
+
+
+
+
+
 ###MAIN###
+try: 
+    while True:
+        op = menu()
 
-while True:
-    op = menu()
-
-    if (op == "1"):
-        print("[INFO] A carregar informacoes do CPU...")
-        cpu()
-    elif(op == "2"):
-        disco()
-    elif(op == "3"):
-        gpu()
-    elif(op == "0"):
-        print("[INFO] A sair...")
-        time.sleep(0.5)
-        exit()
-    else:
-        print("[INFO] OPCAO INVALIDA!")
-        print("PRESSIONA ENTER PARA CONTINUAR....")
+        if (op == "1"):
+            print("[INFO] A carregar informacoes do CPU...")
+            cpu()
+        elif(op == "2"):
+            disco()
+        elif(op == "3"):
+            gpu()
+        elif(op == "4"):
+            ram()
+        else:
+            print("[INFO] OPCAO INVALIDA!")
+            print("PRESSIONA ENTER PARA CONTINUAR....")
+except KeyboardInterrupt:
+    print("\n\n[INFO] A sair...")
+    time.sleep(0.5)
+    exit()
