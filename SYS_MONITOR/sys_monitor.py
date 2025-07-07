@@ -22,6 +22,9 @@ def menu():
 
 #INFOS DO CPU
 def cpu():
+
+    # ATUALIZA VALORES EM TEMPO REAL
+
     cpus = psu.cpu_count() #conta cores do cpu
 
     nome = cpui.get_cpu_info() #obter nome do cpu
@@ -55,8 +58,9 @@ def cpu():
         time.sleep(0.5)
         return
 
+#INFOS DISCO
 def disco():
-    particoes = psu.disk_partitions()
+    particoes = psu.disk_partitions() # Obtem as particoes do disco
     os.system('cls')
     try:
         print(f"[PARTICOES]")
@@ -66,8 +70,8 @@ def disco():
         print(f"\n\n[UTILIZACAO]")
 
         for particao in particoes:
-            espaco = psu.disk_usage(particao.mountpoint)
-            print(f"{particao.mountpoint} --> {espaco.percent}% ocupado")
+            espaco = psu.disk_usage(particao.mountpoint) # Busca a utilizacao da particao
+            print(f"{particao.mountpoint} --> {espaco.percent}% ocupado") #imprime a utilizacao
 
         input()
     except KeyboardInterrupt:
@@ -75,8 +79,11 @@ def disco():
         time.sleep(0.5)
         return
 
-
+#INFOS GPU
 def gpu():
+
+    #ATUALIZA VALORES EM TEMPO REAL
+
     gpus = gpui.getGPUs()
 
     os.system('cls')
@@ -91,7 +98,29 @@ def gpu():
             for i, gpu in enumerate(gpus):
                 print(f"\nGPU {i+1:<2} --> {gpu.name}")
             
-            input()
+            op = input("\n Escolha uma GPU para ver mais detalhes (CRTL+C para voltar): ")
+
+            if op.isdigit() and 0 < int(op) <= len(gpus): # Ver, se a input esta dentro do intervalo de gpus
+                indice = int(op) - 1
+                try:
+                    while True:
+                        gpus = gpui.getGPUs()  # Atualiza a lista de GPUs a cada iteração
+                        gpu = gpus[indice]
+                        os.system('cls')
+                        print(f"\n[INFORMACOES DA GPU {indice+1} EM TEMPO REAL]\n")
+                        print(f"GPU           > {gpu.name}")
+                        print(f"Memoria Total > {gpu.memoryTotal} MB")
+                        print(f"Memoria Livre > {gpu.memoryFree} MB")
+                        print(f"Temperatiura  > {gpu.temperature} (C)")
+                        print("\nPressiona CTRL+C para voltar ao menu...")
+                        time.sleep(1)
+
+                except KeyboardInterrupt:
+                    print("\n[INFO] A voltar...")
+                    time.sleep(0.5)
+                    return
+            
+        
     except KeyboardInterrupt:
         print("\n[INFO] A voltar...")
         time.sleep(0.5)
